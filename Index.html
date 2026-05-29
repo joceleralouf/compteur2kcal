@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculateur de calories cocktail</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Marcellus&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --noir:#100c08;
+    --noir-2:#1a1410;
+    --carte:#211a14;
+    --carte-2:#2a2018;
+    --laiton:#c79a4b;
+    --laiton-clair:#e7c884;
+    --cuivre:#b06a3c;
+    --creme:#efe6d6;
+    --gris:#9a8e7d;
+    --ligne:#3a2e22;
+    --alcool:#c79a4b;
+    --sucre:#cf7a52;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:'Jost',sans-serif;
+    background:
+      radial-gradient(circle at 20% 0%, rgba(199,154,75,.10), transparent 45%),
+      radial-gradient(circle at 90% 100%, rgba(176,106,60,.10), transparent 50%),
+      var(--noir);
+    color:var(--creme);
+    min-height:100vh;
+    padding:48px 20px 80px;
+    line-height:1.5;
+  }
+  body::before{
+    content:"";position:fixed;inset:0;pointer-events:none;opacity:.04;z-index:0;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  .wrap{max-width:760px;margin:0 auto;position:relative;z-index:1}
+
+  header{text-align:center;margin-bottom:42px}
+  .ornement{color:var(--laiton);letter-spacing:.5em;font-size:13px;margin-bottom:14px}
+  h1{
+    font-family:'Marcellus',serif;font-weight:400;
+    font-size:clamp(30px,6vw,46px);
+    color:var(--creme);letter-spacing:.02em;line-height:1.1;
+  }
+  h1 span{color:var(--laiton-clair)}
+  .sous{color:var(--gris);font-size:14px;margin-top:10px;font-weight:300;letter-spacing:.03em}
+
+  .panneau{
+    background:linear-gradient(160deg,var(--carte),var(--noir-2));
+    border:1px solid var(--ligne);
+    border-radius:14px;
+    padding:26px 24px;
+    margin-bottom:22px;
+    box-shadow:0 24px 50px -28px rgba(0,0,0,.9), inset 0 1px 0 rgba(231,200,132,.06);
+  }
+  .titre-section{
+    font-family:'Marcellus',serif;font-size:19px;color:var(--laiton-clair);
+    display:flex;align-items:center;gap:12px;margin-bottom:20px;letter-spacing:.03em;
+  }
+  .titre-section::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--ligne),transparent)}
+  .num{
+    width:26px;height:26px;flex:none;border:1px solid var(--laiton);border-radius:50%;
+    color:var(--laiton);font-size:13px;display:grid;place-items:center;font-family:'Jost'
+  }
+
+  label{display:block;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--gris);margin-bottom:7px}
+  select,input{
+    width:100%;background:var(--noir);border:1px solid var(--ligne);color:var(--creme);
+    border-radius:8px;padding:11px 12px;font-family:'Jost';font-size:15px;transition:.18s;
+  }
+  select:focus,input:focus{outline:none;border-color:var(--laiton);box-shadow:0 0 0 3px rgba(199,154,75,.13)}
+  input[type=number]{ -moz-appearance:textfield }
+  select{cursor:pointer}
+  optgroup{background:var(--noir-2);color:var(--laiton);font-style:normal}
+  option{background:var(--noir-2);color:var(--creme)}
+
+  .grille-base{display:grid;grid-template-columns:1fr 90px 90px;gap:14px}
+  @media(max-width:520px){.grille-base{grid-template-columns:1fr 1fr}.grille-base .full{grid-column:1/-1}}
+
+  /* lignes ingrédients */
+  #liste{display:flex;flex-direction:column;gap:12px;margin-bottom:18px}
+  .ligne{
+    display:grid;grid-template-columns:1fr 80px 78px 36px;gap:10px;align-items:end;
+    animation:apparait .35s ease;
+  }
+  @keyframes apparait{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+  .ligne label{margin-bottom:5px}
+  .suppr{
+    height:43px;border:1px solid var(--ligne);background:transparent;color:var(--gris);
+    border-radius:8px;cursor:pointer;font-size:18px;transition:.18s;
+  }
+  .suppr:hover{border-color:var(--cuivre);color:var(--cuivre)}
+  @media(max-width:520px){
+    .ligne{grid-template-columns:1fr 1fr;gap:10px 12px}
+    .ligne .nom-col{grid-column:1/-1}
+    .suppr{grid-column:2;justify-self:end;width:43px}
+  }
+
+  .ajouter{
+    width:100%;padding:13px;background:transparent;border:1px dashed var(--ligne);
+    color:var(--laiton);border-radius:8px;cursor:pointer;font-family:'Jost';font-size:14px;
+    letter-spacing:.05em;transition:.18s;
+  }
+  .ajouter:hover{border-color:var(--laiton);background:rgba(199,154,75,.06)}
+
+  .brix{margin-top:20px;padding-top:18px;border-top:1px dashed var(--ligne)}
+  .brix-titre{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--laiton);margin-bottom:12px}
+  .brix-row{display:flex;gap:16px;align-items:end;flex-wrap:wrap}
+  .brix-row>div:first-child{width:130px}
+  .brix-eq{font-size:15px;color:var(--gris);padding-bottom:10px}
+  .brix-eq b{font-family:'Marcellus',serif;font-size:22px;color:var(--laiton-clair);margin:0 2px}
+  .brix-eq span{display:block;font-size:11px;margin-top:2px}
+  .aide-section{font-size:12.5px;color:var(--gris);line-height:1.5;margin:-8px 0 18px}
+  .aide-section b{color:var(--laiton-clair);font-weight:500}
+
+  /* résultat */
+  .resultat{
+    background:linear-gradient(160deg,#241b12,#14100b);
+    border:1px solid var(--laiton);
+    text-align:center;
+  }
+  .total-kcal{font-family:'Marcellus',serif;font-size:clamp(54px,13vw,84px);color:var(--laiton-clair);line-height:1}
+  .total-kcal small{font-size:.3em;color:var(--gris);letter-spacing:.2em;display:block;margin-top:6px;font-family:'Jost'}
+
+  .barre{height:10px;border-radius:6px;display:flex;overflow:hidden;margin:26px 0 16px;background:var(--noir)}
+  .barre i{display:block;height:100%;transition:width .4s ease}
+  .barre .b-alcool{background:linear-gradient(90deg,var(--laiton),var(--laiton-clair))}
+  .barre .b-sucre{background:linear-gradient(90deg,var(--cuivre),var(--sucre))}
+
+  .legende{display:flex;justify-content:center;gap:28px;flex-wrap:wrap;font-size:13px;color:var(--gris)}
+  .legende div{display:flex;align-items:center;gap:8px}
+  .pastille{width:11px;height:11px;border-radius:3px}
+  .legende b{color:var(--creme);font-weight:500}
+
+  .stats{
+    display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--ligne);
+    border:1px solid var(--ligne);border-radius:10px;overflow:hidden;margin-top:26px;
+  }
+  .stat{background:var(--noir-2);padding:16px 10px}
+  .stat .v{font-family:'Marcellus',serif;font-size:24px;color:var(--laiton-clair)}
+  .stat .l{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--gris);margin-top:4px}
+  @media(max-width:520px){.stats{grid-template-columns:1fr}}
+
+  .note{font-size:12px;color:var(--gris);line-height:1.6;margin-top:14px}
+  .note b{color:var(--creme);font-weight:500}
+  footer{text-align:center;color:var(--gris);font-size:11.5px;margin-top:30px;letter-spacing:.06em}
+  .raz{background:none;border:none;color:var(--cuivre);cursor:pointer;font-family:'Jost';font-size:12px;text-decoration:underline;text-underline-offset:3px;margin-top:18px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="ornement">&#10070; &nbsp; CRYSTAL &nbsp; &#10070;</div>
+    <h1>Calculateur de <span>calories</span><br>par cocktail</h1>
+    <p class="sous">Éthanol pur 7 kcal/g, densité 0,789 g/ml. Volumes en cl, valeurs éditables.</p>
+  </header>
+
+  <!-- BASE -->
+  <section class="panneau">
+    <div class="titre-section"><span class="num">1</span> Spiritueux de base</div>
+    <div class="grille-base">
+      <div class="full">
+        <label>Alcool</label>
+        <select id="baseSelect"></select>
+      </div>
+      <div>
+        <label>Volume (cl)</label>
+        <input id="baseVol" type="number" min="0" step="0.5" value="5">
+      </div>
+      <div>
+        <label>TAV (%)</label>
+        <input id="baseAbv" type="number" min="0" max="96" step="0.5" value="40">
+      </div>
+    </div>
+  </section>
+
+  <!-- INGREDIENTS -->
+  <section class="panneau">
+    <div class="titre-section"><span class="num">2</span> Ingrédients du cocktail</div>
+    <p class="aide-section">La colonne <b>Sucre /cl</b> = apport sucre et gras uniquement. L'alcool est compté à part, via le TAV de chaque ingrédient.</p>
+    <div id="liste"></div>
+    <button class="ajouter" id="btnAjouter">+ Ajouter un ingrédient</button>
+
+    <div class="brix">
+      <div class="brix-titre">Prépa maison ? Convertir le °Brix</div>
+      <div class="brix-row">
+        <div><label>°Brix mesuré</label><input id="brixIn" type="number" min="0" max="85" step="0.5" placeholder="ex : 62"></div>
+        <div class="brix-eq">=&nbsp; <b id="brixOut">0</b> kcal/cl <span>à recopier dans la colonne Sucre /cl</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- RESULTAT -->
+  <section class="panneau resultat">
+    <div class="total-kcal"><span id="totKcal">0</span><small>KILOCALORIES</small></div>
+
+    <div class="barre">
+      <i class="b-alcool" id="barAlcool" style="width:0%"></i>
+      <i class="b-sucre" id="barSucre" style="width:0%"></i>
+    </div>
+    <div class="legende">
+      <div><span class="pastille" style="background:var(--laiton)"></span> Alcool <b id="kcalAlcool">0</b> kcal</div>
+      <div><span class="pastille" style="background:var(--sucre)"></span> Sucres &amp; gras <b id="kcalSucre">0</b> kcal</div>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="v" id="volTot">0</div><div class="l">cl au total</div></div>
+      <div class="stat"><div class="v" id="alcoolG">0</div><div class="l">g d'alcool pur</div></div>
+      <div class="stat"><div class="v" id="unites">0</div><div class="l">unités d'alcool</div></div>
+    </div>
+
+    <p class="note"><b>Unité d'alcool</b> = 10 g d'éthanol pur (standard FR). Valeurs sucre/gras calées sur les tables Ciqual (ANSES) et USDA, et sur les déclarations nutritionnelles des marques (UE 1169/2011). Ce sont des moyennes : pour tes prépas maison, mesure le °Brix au réfractomètre et utilise le convertisseur ci-dessus.</p>
+    <button class="raz" id="btnRaz">Réinitialiser</button>
+  </section>
+
+  <footer>Éthanol 7 kcal/g, densité 0,789 g/ml (réf. 21 CFR 101.9 / Ciqual ANSES). Glycérol et résidus secs non comptés. &nbsp;|&nbsp; Le Bar du Crystal</footer>
+</div>
+
+<script>
+/* ---------- Bibliothèque d'ingrédients ----------
+   abv = % alcool ; kcalCl = kcal NON alcooliques par cl (sucres, gras, etc.) */
+const BASES = {
+  "Spiritueux secs":[
+    ["Vodka",40,0],["Gin",40,0],["Rhum blanc agricole",50,0],["Rhum blanc traditionnel",40,0],
+    ["Rhum ambré / vieux",40,0],["Tequila blanco",40,0],["Mezcal",45,0],["Whisky / Scotch",40,0],
+    ["Bourbon",40,0],["Cognac / Armagnac",40,0],["Calvados",40,0],["Cachaça",40,0],["Pisco",40,0]
+  ],
+  "Personnalisé":[["Autre spiritueux (saisir TAV)",40,0]]
+};
+
+const INGREDIENTS = {
+  "Liqueurs & amers":[
+    ["Cointreau / Triple sec",40,8],["Grand Marnier",40,12],["Curaçao bleu",25,12],
+    ["Campari",25,11],["Aperol",11,6.5],["Crème de cassis",16,18],["Crème de pêche",18,15],
+    ["Amaretto (Disaronno)",28,10],["Maraschino",32,14],["Chartreuse verte",55,10],["Saint-Germain (sureau)",20,13],
+    ["Limoncello",28,16],["Liqueur de café (Kahlúa)",20,14],["Falernum",11,18],["Triple sec maison",30,11]
+  ],
+  "Vermouths & vins":[
+    ["Vermouth rouge / doux",16,6],["Vermouth blanc",16,5],["Vermouth dry",18,1.5],
+    ["Lillet / Cocchi Americano",17,7],["Sherry fino",15,0],["Porto rouge",20,5],
+    ["Champagne brut",12,1],["Prosecco / mousseux",11,2],["Vin rouge",13,0.3],["Vin blanc sec",12,0.2],["Sake",15,2]
+  ],
+  "Sirops & sucrants":[
+    ["Sirop simple 1:1",0,27],["Sirop riche 2:1",0,36],["Sirop d'agave",0,31],["Miel liquide (pur)",0,43],
+    ["Grenadine",0,27],["Sirop d'orgeat",0,38],["Sirop maison (utiliser le Brix)",0,27],["Cordial maison (utiliser le Brix)",0,27]
+  ],
+  "Jus & acides":[
+    ["Jus de citron",0,2.5],["Jus de citron vert (lime)",0,2.5],["Jus d'orange",0,4.5],
+    ["Jus de pamplemousse",0,4],["Jus de cranberry",0,4.6],["Jus de tomate",0,1.7],
+    ["Jus de pomme",0,4.6],["Verjus",0,2],["Purée de fruit rouge",0,5],["Eau de coco",0,1.9]
+  ],
+  "Softs & toniques":[
+    ["Eau gazeuse / soda",0,0],["Tonic",0,3.5],["Tonic light",0,0.2],["Ginger beer",0,3.9],
+    ["Ginger ale",0,3.4],["Cola",0,4.2],["Cola zéro",0,0],["Thé / infusion",0,0],["Café / cold brew",0,0]
+  ],
+  "Texturants & laitiers":[
+    ["Blanc d'œuf",0,5.4],["Œuf entier",0,15],["Crème liquide entière",0,29],["Lait entier",0,6.4],
+    ["Lait de coco (conserve)",0,20],["Lait végétal (avoine)",0,4.5]
+  ],
+  "Personnalisé":[["Autre ingrédient (à saisir)",0,0]]
+};
+
+const DENS=0.789, KCAL_G=7;
+
+/* ---------- Remplissage du select de base ---------- */
+const baseSel=document.getElementById('baseSelect');
+for(const [grp,items] of Object.entries(BASES)){
+  const og=document.createElement('optgroup');og.label=grp;
+  items.forEach(([n,a,k])=>{
+    const o=document.createElement('option');o.value=`${a}|${k}`;o.textContent=n;og.appendChild(o);
+  });
+  baseSel.appendChild(og);
+}
+baseSel.addEventListener('change',()=>{
+  const [a]=baseSel.value.split('|').map(Number);
+  document.getElementById('baseAbv').value=a;
+  calc();
+});
+
+/* ---------- Lignes d'ingrédients ---------- */
+const liste=document.getElementById('liste');
+function selOptions(){
+  let h='';
+  for(const [grp,items] of Object.entries(INGREDIENTS)){
+    h+=`<optgroup label="${grp}">`;
+    items.forEach(([n,a,k])=>h+=`<option value="${a}|${k}">${n}</option>`);
+    h+=`</optgroup>`;
+  }
+  return h;
+}
+function ajouterLigne(nom){
+  const div=document.createElement('div');div.className='ligne';
+  div.innerHTML=`
+    <div class="nom-col">
+      <label>Ingrédient</label>
+      <select class="ing-sel">${selOptions()}</select>
+    </div>
+    <div><label>Vol (cl)</label><input class="ing-vol" type="number" min="0" step="0.5" value="2"></div>
+    <div><label>Sucre /cl</label><input class="ing-kcal" type="number" min="0" step="0.5" value="0"></div>
+    <button class="suppr" title="Retirer">&times;</button>`;
+  liste.appendChild(div);
+
+  const sel=div.querySelector('.ing-sel');
+  const kcalIn=div.querySelector('.ing-kcal');
+  const syncKcal=()=>{ kcalIn.value=sel.value.split('|')[1]; };
+  sel.addEventListener('change',()=>{syncKcal();calc();});
+  syncKcal();
+  if(nom){const o=[...sel.options].find(o=>o.textContent===nom);if(o){sel.value=o.value;syncKcal();}}
+
+  div.querySelectorAll('input,select').forEach(el=>el.addEventListener('input',calc));
+  div.querySelector('.suppr').addEventListener('click',()=>{div.remove();calc();});
+  calc();
+}
+
+/* ---------- Calcul ---------- */
+function alcoolKcal(vol,abv){ return vol*10*(abv/100)*DENS*KCAL_G; }
+function alcoolGrammes(vol,abv){ return vol*10*(abv/100)*DENS; }
+
+function calc(){
+  let kA=0,kS=0,vol=0,gAlc=0;
+
+  // base
+  const bVol=+document.getElementById('baseVol').value||0;
+  const bAbv=+document.getElementById('baseAbv').value||0;
+  const bK=+baseSel.value.split('|')[1]||0;
+  kA+=alcoolKcal(bVol,bAbv); kS+=bVol*bK; vol+=bVol; gAlc+=alcoolGrammes(bVol,bAbv);
+
+  // ingrédients
+  liste.querySelectorAll('.ligne').forEach(l=>{
+    const v=+l.querySelector('.ing-vol').value||0;
+    const a=+l.querySelector('.ing-sel').value.split('|')[0]||0;
+    const k=+l.querySelector('.ing-kcal').value||0;
+    kA+=alcoolKcal(v,a); kS+=v*k; vol+=v; gAlc+=alcoolGrammes(v,a);
+  });
+
+  const tot=kA+kS;
+  document.getElementById('totKcal').textContent=Math.round(tot);
+  document.getElementById('kcalAlcool').textContent=Math.round(kA);
+  document.getElementById('kcalSucre').textContent=Math.round(kS);
+  document.getElementById('volTot').textContent=(Math.round(vol*10)/10);
+  document.getElementById('alcoolG').textContent=(Math.round(gAlc*10)/10);
+  document.getElementById('unites').textContent=(Math.round(gAlc/10*10)/10);
+
+  const pA=tot?kA/tot*100:0;
+  document.getElementById('barAlcool').style.width=pA+'%';
+  document.getElementById('barSucre').style.width=(100-pA)+'%';
+}
+
+/* ---------- Convertisseur Brix -> kcal/cl ----------
+   Brix = g de sucre / 100 g de solution. Densité estimée d'une solution sucrée
+   par approximation linéaire (1 + 0,0042 x Brix), valable jusqu'à ~70 Brix.
+   kcal/cl = Brix x densité x 0,4  (4 kcal/g, conversion 100g -> cl) */
+const brixIn=document.getElementById('brixIn');
+brixIn.addEventListener('input',()=>{
+  const b=+brixIn.value||0;
+  const dens=1+0.0042*b;
+  document.getElementById('brixOut').textContent=Math.round(b*dens*0.4*10)/10;
+});
+
+/* ---------- Init ---------- */
+document.getElementById('btnAjouter').addEventListener('click',()=>ajouterLigne());
+document.getElementById('btnRaz').addEventListener('click',()=>{
+  liste.innerHTML='';baseSel.selectedIndex=0;
+  document.getElementById('baseVol').value=5;document.getElementById('baseAbv').value=40;
+  demo();
+});
+['baseVol','baseAbv'].forEach(id=>document.getElementById(id).addEventListener('input',calc));
+
+function demo(){ ajouterLigne("Jus de citron vert (lime)"); ajouterLigne("Sirop simple 1:1"); }
+demo();
+calc();
+</script>
+</body>
+</html>
